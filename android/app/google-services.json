@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "473909583455",
-    "project_id": "chat-app-695f9",
-    "storage_bucket": "chat-app-695f9.firebasestorage.app"
+    "project_number": "921498073331",
+    "project_id": "our-chat-7fe22",
+    "storage_bucket": "our-chat-7fe22.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:473909583455:android:19f84abe57e1ff3a1345ea",
+        "mobilesdk_app_id": "1:921498073331:android:02be157b537e2f69615f86",
         "android_client_info": {
           "package_name": "com.example.scholar_chat"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAnrohjoKhUgaDrIInBv7seON2D48eQSvI"
+          "current_key": "AIzaSyClWXgPR6NqMlA_RMYKzv_TzjAYnCGTWSw"
         }
       ],
       "services": {
