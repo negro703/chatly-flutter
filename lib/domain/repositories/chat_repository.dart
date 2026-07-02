@@ -61,4 +61,14 @@ abstract class ChatRepository {
     required String messageId,
     required String newEncryptedText,
   });
+
+  /// Clears all messages in a chat room.
+  Future<Result<void>> clearChat(String chatId);
+
+  /// Updates a chat room's name and/or image.
+  Future<Result<void>> updateChatRoom({
+    required String chatId,
+    String? roomName,
+    String? roomImage,
+  });
 }

@@ -166,4 +166,44 @@ class ChatRepositoryImpl implements ChatRepository {
       return left(ServerFailure.internal());
     }
   }
+
+  @override
+  Future<Result<void>> clearChat(String chatId) async {
+    if (!await networkInfo.isConnected) {
+      return left(NetworkFailure.noInternet());
+    }
+
+    try {
+      await remoteDataSource.clearChat(chatId);
+      return right(null);
+    } on ServerException catch (_) {
+      return left(ServerFailure.internal());
+    } catch (_) {
+      return left(ServerFailure.internal());
+    }
+  }
+
+  @override
+  Future<Result<void>> updateChatRoom({
+    required String chatId,
+    String? roomName,
+    String? roomImage,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return left(NetworkFailure.noInternet());
+    }
+
+    try {
+      await remoteDataSource.updateChatRoom(
+        chatId: chatId,
+        roomName: roomName,
+        roomImage: roomImage,
+      );
+      return right(null);
+    } on ServerException catch (_) {
+      return left(ServerFailure.internal());
+    } catch (_) {
+      return left(ServerFailure.internal());
+    }
+  }
 }

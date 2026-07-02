@@ -1,5 +1,6 @@
 import 'package:our_chat/core/error/failures.dart';
 import 'package:our_chat/domain/entities/call.dart';
+import 'package:our_chat/domain/entities/call_log.dart';
 
 /// Abstract repository for voice and video call operations.
 ///
@@ -32,4 +33,22 @@ abstract class CallRepository {
     int limit = 20,
     String? lastCallId,
   });
+
+  // ========================================
+  // Call Logs (Persistent History)
+  // ========================================
+
+  /// Creates a new call log entry.
+  Future<Result<CallLog>> createCallLog(CallLog callLog);
+
+  /// Retrieves call logs for a user with pagination.
+  Future<Result<List<CallLog>>> getCallLogs({
+    required String userId,
+    int limit = 20,
+    String? lastCallId,
+    DateTime? lastCallDate,
+  });
+
+  /// Streams call logs for a user in real-time.
+  Stream<List<CallLog>> getCallLogsStream(String userId);
 }

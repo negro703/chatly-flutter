@@ -7,6 +7,7 @@ import 'package:get_it/get_it.dart';
 
 import 'package:our_chat/core/network/network_info.dart';
 import 'package:our_chat/data/datasources/auth_remote_data_source.dart';
+import 'package:our_chat/data/datasources/call_log_remote_data_source.dart';
 import 'package:our_chat/data/datasources/chat_remote_data_source.dart';
 import 'package:our_chat/data/datasources/storage_remote_data_source.dart';
 import 'package:our_chat/data/encryption/e2ee_service.dart';
@@ -21,13 +22,19 @@ import 'package:our_chat/domain/repositories/storage_repository.dart';
 import 'package:our_chat/domain/usecases/auth/login_usecase.dart';
 import 'package:our_chat/domain/usecases/auth/logout_usecase.dart';
 import 'package:our_chat/domain/usecases/auth/register_usecase.dart';
+import 'package:our_chat/domain/usecases/auth/update_profile_usecase.dart';
+import 'package:our_chat/domain/usecases/call_logs/add_call_log_usecase.dart';
+import 'package:our_chat/domain/usecases/call_logs/get_call_logs_usecase.dart';
 import 'package:our_chat/domain/usecases/chat/get_messages_usecase.dart';
 import 'package:our_chat/domain/usecases/chat/send_media_usecase.dart';
 import 'package:our_chat/domain/usecases/chat/send_message_usecase.dart';
 import 'package:our_chat/domain/usecases/encryption/encrypt_message_usecase.dart';
 import 'package:our_chat/presentation/cubit/auth/auth_cubit.dart';
 import 'package:our_chat/presentation/cubit/call/call_cubit.dart';
+import 'package:our_chat/presentation/cubit/call_logs/call_logs_cubit.dart';
 import 'package:our_chat/presentation/cubit/chat/chat_cubit.dart';
+import 'package:our_chat/presentation/cubit/profile/profile_cubit.dart';
+import 'package:our_chat/presentation/cubit/theme/theme_cubit.dart';
 
 /// Global service locator instance.
 final sl = GetIt.instance;
@@ -81,6 +88,10 @@ Future<void> initDependencies() async {
     () => StorageRemoteDataSource(storage: sl()),
   );
 
+  sl.registerLazySingleton<CallLogRemoteDataSource>(
+    () => CallLogRemoteDataSource(firestore: sl()),
+  );
+
   // ========================================
   // Repository Implementations
   // ========================================
@@ -100,7 +111,9 @@ Future<void> initDependencies() async {
   );
 
   sl.registerLazySingleton<CallRepository>(
-    () => CallRepositoryImpl(),
+    () => CallRepositoryImpl(
+      callLogRemoteDataSource: sl(),
+    ),
   );
 
   sl.registerLazySingleton<StorageRepository>(
@@ -125,6 +138,10 @@ Future<void> initDependencies() async {
     () => LogoutUseCase(repository: sl()),
   );
 
+  sl.registerLazySingleton<UpdateProfileUseCase>(
+    () => UpdateProfileUseCase(repository: sl()),
+  );
+
   sl.registerLazySingleton<SendMessageUseCase>(
     () => SendMessageUseCase(repository: sl()),
   );
@@ -142,6 +159,15 @@ Future<void> initDependencies() async {
 
   sl.registerLazySingleton<EncryptMessageUseCase>(
     () => const EncryptMessageUseCase(),
+  );
+
+  // Call Logs Use Cases
+  sl.registerLazySingleton<GetCallLogsUseCase>(
+    () => GetCallLogsUseCase(repository: sl()),
+  );
+
+  sl.registerLazySingleton<AddCallLogUseCase>(
+    () => AddCallLogUseCase(repository: sl()),
   );
 
   // ========================================
@@ -169,5 +195,23 @@ Future<void> initDependencies() async {
 
   sl.registerFactory<CallCubit>(
     () => CallCubit(),
+  );
+
+  sl.registerFactory<ProfileCubit>(
+    () => ProfileCubit(
+      updateProfileUseCase: sl(),
+      storageRepository: sl(),
+    ),
+  );
+
+  sl.registerFactory<ThemeCubit>(
+    () => ThemeCubit(),
+  );
+
+  sl.registerFactory<CallLogsCubit>(
+    () => CallLogsCubit(
+      getCallLogsUseCase: sl(),
+      addCallLogUseCase: sl(),
+    ),
   );
 }

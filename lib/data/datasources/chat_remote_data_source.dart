@@ -188,4 +188,40 @@ class ChatRemoteDataSource {
       throw ServerException.internal();
     }
   }
+
+  /// Clears all messages in a chat room by marking them as deleted.
+  Future<void> clearChat(String chatId) async {
+    try {
+      final snapshot = await _messagesRef
+          .where('chatId', isEqualTo: chatId)
+          .get();
+
+      final batch = _firestore.batch();
+      for (final doc in snapshot.docs) {
+        batch.update(doc.reference, {'isDeleted': true});
+      }
+      await batch.commit();
+    } catch (e) {
+      throw ServerException.internal();
+    }
+  }
+
+  /// Updates a chat room's name and/or image in Firestore.
+  Future<void> updateChatRoom({
+    required String chatId,
+    String? roomName,
+    String? roomImage,
+  }) async {
+    try {
+      final updateData = <String, dynamic>{};
+      if (roomName != null) updateData['roomName'] = roomName;
+      if (roomImage != null) updateData['roomImage'] = roomImage;
+
+      if (updateData.isNotEmpty) {
+        await _firestore.collection('chat_rooms').doc(chatId).update(updateData);
+      }
+    } catch (e) {
+      throw ServerException.internal();
+    }
+  }
 }

@@ -129,6 +129,40 @@ class AuthRemoteDataSource {
     }
   }
 
+  /// Updates the user's profile in Firestore and Firebase Auth.
+  ///
+  /// [photoUrl] is the download URL after uploading to Firebase Storage.
+  Future<UserModel> updateProfile({
+    required String userId,
+    String? displayName,
+    String? photoUrl,
+  }) async {
+    try {
+      final updateData = <String, dynamic>{};
+      if (displayName != null) {
+        updateData['displayName'] = displayName;
+        // Also update Firebase Auth display name
+        final user = _firebaseAuth.currentUser;
+        if (user != null) {
+          await user.updateDisplayName(displayName);
+        }
+      }
+      if (photoUrl != null) {
+        updateData['photoUrl'] = photoUrl;
+      }
+
+      if (updateData.isNotEmpty) {
+        await _firestore.collection('users').doc(userId).update(updateData);
+      }
+
+      // Return the updated user
+      final updatedUser = await getUserById(userId);
+      return updatedUser!;
+    } catch (e) {
+      throw ServerException.internal();
+    }
+  }
+
   /// Maps Firebase Auth exceptions to our typed exceptions.
   AuthException _mapAuthException(auth.FirebaseAuthException e) {
     switch (e.code) {

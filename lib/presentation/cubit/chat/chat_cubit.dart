@@ -321,6 +321,57 @@ class ChatCubit extends Cubit<ChatState> {
     }
   }
 
+  /// Updates the chat room's name and/or image.
+  Future<void> updateChatRoom({
+    required String chatId,
+    String? roomName,
+    String? roomImage,
+  }) async {
+    try {
+      final result = await chatRepository.updateChatRoom(
+        chatId: chatId,
+        roomName: roomName,
+        roomImage: roomImage,
+      );
+
+      result.fold(
+        (failure) {
+          _logger.e('Failed to update chat room: ${failure.message}');
+          emit(ChatError(message: failure.message));
+        },
+        (_) {
+          _logger.i('Chat room updated successfully');
+        },
+      );
+    } catch (e) {
+      _logger.e('Unexpected error updating chat room: $e');
+      emit(const ChatError(message: 'Failed to update chat room'));
+    }
+  }
+
+  /// Clears all messages in a chat room.
+  Future<void> clearChat(String chatId) async {
+    try {
+      _logger.i('Clearing chat: $chatId');
+      final result = await chatRepository.clearChat(chatId);
+
+      result.fold(
+        (failure) {
+          _logger.e('Failed to clear chat: ${failure.message}');
+          emit(ChatError(message: failure.message));
+        },
+        (_) {
+          _logger.i('Chat cleared successfully');
+          _messages = [];
+          emit(ChatLoaded(messages: []));
+        },
+      );
+    } catch (e) {
+      _logger.e('Unexpected error clearing chat: $e');
+      emit(const ChatError(message: 'Failed to clear chat'));
+    }
+  }
+
   /// Closes all real-time streams.
   void closeStreams() {
     _logger.i('Closing all real-time streams');

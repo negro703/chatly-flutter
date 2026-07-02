@@ -41,6 +41,15 @@ abstract class AuthRepository {
   /// Checks if a user is currently authenticated.
   Future<bool> isAuthenticated();
 
+  /// Updates the user's profile (display name and/or photo URL).
+  ///
+  /// Returns the updated [User] on success or [Failure] on error.
+  Future<Result<User>> updateProfile({
+    required String userId,
+    String? displayName,
+    String? photoUrl,
+  });
+
   /// Sends a password reset email.
   Future<Result<void>> resetPassword(String email);
 }
