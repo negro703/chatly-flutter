@@ -4,15 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
-import 'package:our_chat/core/constants/app_colors.dart';
-import 'package:our_chat/core/constants/app_strings.dart';
-import 'package:our_chat/domain/entities/user.dart';
 import 'package:our_chat/presentation/cubit/auth/auth_cubit.dart';
 import 'package:our_chat/presentation/cubit/auth/auth_state.dart';
 import 'package:our_chat/presentation/cubit/profile/profile_cubit.dart';
 import 'package:our_chat/presentation/cubit/profile/profile_state.dart';
 
 /// Page for editing the user's profile (name and photo).
+///
+/// Uses Material 3 design with clean layout and proper padding.
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
 
@@ -31,7 +30,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
     super.initState();
     final authState = context.read<AuthCubit>().state;
     if (authState is AuthAuthenticated) {
-      _nameController = TextEditingController(text: authState.user.displayName);
+      _nameController = TextEditingController(
+        text: authState.user.displayName,
+      );
     } else {
       _nameController = TextEditingController();
     }
@@ -52,10 +53,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
       imageQuality: 80,
     );
 
-    if (pickedFile != null) {
-      setState(() {
-        _imagePath = pickedFile.path;
-      });
+    if (pickedFile != null && mounted) {
+      setState(() => _imagePath = pickedFile.path);
     }
   }
 
@@ -66,8 +65,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     final authState = context.read<AuthCubit>().state;
     if (authState is! AuthAuthenticated) {
-      setState(() => _isLoading = false);
       if (mounted) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('User not authenticated')),
         );
@@ -77,11 +76,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     final userId = authState.user.id;
     final displayName = _nameController.text.trim();
-
     final profileCubit = context.read<ProfileCubit>();
 
     // Listen for the result
-    profileCubit.stream.firstWhere((state) => state is! ProfileLoading).then((state) {
+    profileCubit.stream
+        .firstWhere((state) => state is! ProfileLoading)
+        .then((state) {
       if (mounted) {
         setState(() => _isLoading = false);
         if (state is ProfileUpdated) {
@@ -115,80 +115,96 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget build(BuildContext context) {
     final authState = context.watch<AuthCubit>().state;
     final user = authState is AuthAuthenticated ? authState.user : null;
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Profile'),
         actions: [
-          TextButton(
-            onPressed: _isLoading ? null : _saveProfile,
-            child: _isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Text('Save'),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: FilledButton(
+              onPressed: _isLoading ? null : _saveProfile,
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Save'),
+            ),
           ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
         child: Form(
           key: _formKey,
           child: Column(
             children: [
               // Profile Photo
-              GestureDetector(
-                onTap: _pickImage,
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 64,
-                      backgroundColor: AppColors.primaryLight,
-                      backgroundImage: _imagePath != null
-                          ? FileImage(File(_imagePath!))
-                          : (user?.photoUrl != null
-                              ? NetworkImage(user!.photoUrl!)
-                              : null),
-                      child: (_imagePath == null && user?.photoUrl == null)
-                          ? const Icon(
-                              Icons.person,
-                              size: 64,
-                              color: AppColors.textOnPrimary,
-                            )
-                          : null,
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: const BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.camera_alt,
-                          size: 20,
-                          color: Colors.white,
+              Center(
+                child: GestureDetector(
+                  onTap: _pickImage,
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 72,
+                        backgroundColor:
+                            theme.colorScheme.primaryContainer,
+                        backgroundImage: _imagePath != null
+                            ? FileImage(File(_imagePath!))
+                            : (user?.photoUrl != null
+                                ? NetworkImage(user!.photoUrl!)
+                                : null),
+                        child: (_imagePath == null && user?.photoUrl == null)
+                            ? Icon(
+                                Icons.person,
+                                size: 72,
+                                color: theme.colorScheme.onPrimaryContainer,
+                              )
+                            : null,
+                      ),
+                      Positioned(
+                        bottom: 4,
+                        right: 4,
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: theme.colorScheme.surface,
+                              width: 3,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.camera_alt,
+                            size: 22,
+                            color: theme.colorScheme.onPrimary,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
 
               // Display Name
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Display Name',
-                  prefixIcon: Icon(Icons.person_outline),
+                  prefixIcon: const Icon(Icons.person_outline),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: theme.colorScheme.surfaceContainerLowest,
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -200,15 +216,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               // Email (read-only)
               if (user?.email != null)
                 TextFormField(
                   initialValue: user!.email,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Email',
-                    prefixIcon: Icon(Icons.email_outlined),
+                    prefixIcon: const Icon(Icons.email_outlined),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: theme.colorScheme.surfaceContainerLowest,
                   ),
                   enabled: false,
                 ),

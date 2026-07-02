@@ -10,6 +10,8 @@ import 'package:our_chat/presentation/cubit/call_logs/call_logs_cubit.dart';
 import 'package:our_chat/presentation/cubit/call_logs/call_logs_state.dart';
 
 /// Page for displaying call history logs.
+///
+/// Uses Material 3 design with clean layout and proper padding.
 class CallLogsPage extends StatefulWidget {
   const CallLogsPage({super.key});
 
@@ -74,9 +76,12 @@ class _CallLogsPageState extends State<CallLogsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Call History'),
+        centerTitle: true,
       ),
       body: BlocBuilder<CallLogsCubit, CallLogsState>(
         builder: (context, state) {
@@ -87,50 +92,73 @@ class _CallLogsPageState extends State<CallLogsPage> {
               return const Center(child: CircularProgressIndicator());
             case CallLogsLoaded(callLogs: final logs):
               if (logs.isEmpty) {
-                return const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.phone,
-                        size: 64,
-                        color: AppColors.textSecondary,
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'No call history',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: AppColors.textSecondary,
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primaryContainer,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.phone,
+                            size: 48,
+                            color: theme.colorScheme.onPrimaryContainer,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Your call history will appear here',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
+                        const SizedBox(height: 24),
+                        Text(
+                          'No call history',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            color: theme.colorScheme.onSurface,
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        Text(
+                          'Your call history will appear here',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               }
               return ListView.separated(
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 itemCount: logs.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
+                separatorBuilder: (_, _) => const Divider(
+                  height: 1,
+                  indent: 80,
+                  endIndent: 16,
+                ),
                 itemBuilder: (context, index) {
                   final log = logs[index];
                   return ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
                     leading: CircleAvatar(
-                      backgroundColor: _getCallColor(log).withValues(alpha: 0.2),
+                      radius: 24,
+                      backgroundColor:
+                          _getCallColor(log).withValues(alpha: 0.15),
                       child: Icon(
                         _getCallIcon(log),
                         color: _getCallColor(log),
+                        size: 22,
                       ),
                     ),
                     title: Text(
                       log.isIncoming ? log.callerName : log.receiverName,
-                      style: const TextStyle(fontWeight: FontWeight.w500),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     subtitle: Row(
                       children: [
@@ -139,25 +167,48 @@ class _CallLogsPageState extends State<CallLogsPage> {
                           size: 14,
                           color: _getCallColor(log),
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 6),
                         Text(
                           '${_formatDate(log.startedAt)} ${_formatTime(log.startedAt)}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                         ),
                         if (log.durationSeconds > 0) ...[
                           const SizedBox(width: 8),
-                          Text(
-                            '(${log.formattedDuration})',
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 12,
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              log.formattedDuration,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
                             ),
                           ),
                         ],
                       ],
                     ),
-                    trailing: log.callType == CallLogType.video
-                        ? const Icon(Icons.videocam, size: 20)
-                        : const Icon(Icons.phone, size: 20),
+                    trailing: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        log.callType == CallLogType.video
+                            ? Icons.videocam
+                            : Icons.phone,
+                        size: 18,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                     onTap: () {
                       // TODO: Initiate a call to this contact
                     },
@@ -166,25 +217,39 @@ class _CallLogsPageState extends State<CallLogsPage> {
               );
             case CallLogsError(message: final message):
               return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: AppColors.error,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      message,
-                      style: const TextStyle(color: AppColors.error),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: _loadCallLogs,
-                      child: const Text('Retry'),
-                    ),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: AppColors.error.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.error_outline,
+                          size: 48,
+                          color: AppColors.error,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        message,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: AppColors.error,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      FilledButton.icon(
+                        onPressed: _loadCallLogs,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Retry'),
+                      ),
+                    ],
+                  ),
                 ),
               );
           }
